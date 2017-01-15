@@ -1,0 +1,78 @@
+<reports>
+  <report>
+    <topic>OS</topic>
+    <name>系统参数检测</name>
+    <properties>
+      <property>
+        <parameter>vm.swappiness</parameter>
+        <command>sysctl -n vm.swappiness</command>
+      </property>
+      <property>
+        <parameter>vm.min_free_kbytes</parameter>
+        <command>sysctl -n vm.min_free_kbytes</command>
+      </property>
+      <property>
+        <parameter>vm.zone_reclaim_mode</parameter>
+        <command>sysctl -n vm.zone_reclaim_mode</command>
+      </property>
+      <property>
+        <parameter>huge page</parameter>
+        <command>cat /sys/kernel/mm/redhat_transparent_hugepage/defrag</command>
+      </property>
+    </properties>
+  </report>
+  <report>
+    <topic>environment</topic>
+    <name>环境变量检测</name>
+    <properties>
+      <property>
+        <parameter>NTP</parameter>
+        <command>ntpq -p</command>
+      </property>
+      <property>
+        <parameter>JAVA_HOME</parameter>
+        <command>echo $JAVA_HOME</command>
+      </property>
+      <property>
+        <parameter>jdk_version</parameter>
+        <command>java -version 2>&amp;1</command>
+      </property>
+      <property>
+        <parameter>DNS</parameter>
+        <command>cat /etc/resolv.conf</command>
+      </property>
+      <property>
+        <parameter>iptables</parameter>
+        <command>service iptables status</command>
+      </property>
+    </properties>
+  </report>
+  <report>
+    <topic>network</topic>
+    <name>网络检测</name>
+    <properties>
+      <property>
+        <parameter>ip</parameter>
+        <command>ip addr</command>
+      </property>
+      <property>
+        <parameter>hosts</parameter>
+        <command>cat /etc/hosts</command>
+      </property>
+    </properties>
+  </report>
+  <report>
+    <topic>disk</topic>
+    <name>磁盘检测</name>
+    <properties>
+      <property>
+        <parameter>memory</parameter>
+        <command>df -h</command>
+      </property>
+      <property>
+        <parameter>mount</parameter>
+        <command>cat /etc/fstab</command>
+      </property>
+    </properties>
+  </report>
+</reports>

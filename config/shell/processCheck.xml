@@ -1,0 +1,25 @@
+<processChecks>
+  <processCheck>
+    <topic>inceptor server</topic>
+    <serviceRoleType>INCEPTOR_SERVER</serviceRoleType>
+    <properties>
+      <property>
+        <name>jinfo检测</name>
+        <command>jps -l | grep InceptorServer2 | cut -f 1 -d ' ' | xargs sudo -u hive /usr/java/latest/bin/jinfo</command>
+        <key>java.version;agentpath(Xmx,Xms,Xss,ngmr.task.pipeline)</key>
+      </property>
+      <property>
+        <name>jmap前20行</name>
+        <command>jps -l | grep InceptorServer2 | cut -f 1 -d ' ' | xargs sudo -u hive /usr/java/latest/bin/jmap -histo:live | head -n 23</command>
+      </property>
+      <property>
+        <name>jstat gc</name>
+        <command>jps -l | grep InceptorServer2 | cut -f 1 -d ' ' | xargs sudo -u hive /usr/java/latest/bin/jstat -gc</command>
+      </property>
+      <property>
+        <name>jstack NUMABLE</name>
+        <command>jps -l | grep InceptorServer2 | cut -f 1 -d ' ' | xargs sudo -u hive /usr/java/latest/bin/jstack | grep RUNNABLE | wc -l</command>
+      </property>
+    </properties>
+  </processCheck>
+</processChecks>

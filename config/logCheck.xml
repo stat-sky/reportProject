@@ -1,0 +1,20 @@
+<logChecks>
+  <logCheck>
+    <name>inceptorServer</name>
+    <serviceRole>INCEPTOR_SERVER</serviceRole>
+    <filename>hive-server2.log</filename>
+    <key>CurrentSession:current sessions;timedOut:is time-out and will be closed;duration:duration;exception:ERROR</key>
+  </logCheck>
+  <logCheck>
+    <name>metastore</name>
+    <serviceRole>INCEPTOR_METASTORE</serviceRole>
+    <filename>hive-metastore.log</filename>
+    <key>exception:ERROR</key>
+  </logCheck>
+  <logCheck>
+    <name>namenode</name>
+    <serviceRole>NAMENODE</serviceRole>
+    <filename>hadoop-hdfs-namenode-*.log</filename>
+    <key>exception:ERROR</key>
+  </logCheck>
+</logChecks>

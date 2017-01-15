@@ -1,0 +1,10 @@
+<reports>
+  <report>
+    <name>report</name>
+    <command>hdfs dfsadmin -report</command>
+  </report>
+  <report>
+    <name>fsck</name>
+    <command>hdfs fsck /</command>
+  </report>
+</reports>
