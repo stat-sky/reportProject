@@ -24,6 +24,7 @@ public class NodeCheckRunnable implements Runnable {
 	
 	@Override
 	public void run() {
+		logger.info("begin node check of node : " + node.getHostName());
 		/* 节点基础检测 */
 		nodeBaseCheck();
 		/* 端口检测 */

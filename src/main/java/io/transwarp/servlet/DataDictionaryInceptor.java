@@ -37,10 +37,10 @@ public class DataDictionaryInceptor extends DataDictionaryTemplate {
 				/* 添加kerberos认证信息 */
 				String principal = Constant.prop_env.getProperty("principal");
 				String kuser = Constant.prop_env.getProperty("kuser");
-				String keytab = Constant.prop_env.getProperty("keytabPath");
-				String krb5conf = Constant.prop_env.getProperty("krb5confPath");
+				String keytab = Constant.prop_env.getProperty("keytab");
+				String krb5conf = Constant.prop_env.getProperty("krb5conf");
 				url.append(";").append("principal=").append(principal).append(";")
-					.append("authencation=kerberos;").append("kuser=").append(kuser).append(";")
+					.append("authentication=kerberos;").append("kuser=").append(kuser).append(";")
 					.append("keytab=").append(keytab).append(";").append("krb5conf=").append(krb5conf);
 				/* 获取连接 */
 				conn = JDBCUtil.getConnection(url.toString());

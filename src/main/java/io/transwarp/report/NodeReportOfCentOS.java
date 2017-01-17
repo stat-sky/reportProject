@@ -1,6 +1,7 @@
 package io.transwarp.report;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,7 @@ import org.apache.log4j.Logger;
 import org.dom4j.Element;
 
 import io.transwarp.bean.ConfigBean;
+import io.transwarp.bean.MetricBean;
 import io.transwarp.bean.NodeBean;
 import io.transwarp.template.NodeReportTemplate;
 import io.transwarp.util.Constant;
@@ -24,13 +26,15 @@ public class NodeReportOfCentOS extends NodeReportTemplate{
 	private Map<String, String> nodeCheck;
 	private Map<String, ConfigBean> configBeans;
 	private Map<String, String> portChecks;
+	private Map<String, MetricBean> metrics;
 	
-	public NodeReportOfCentOS(NodeBean node, Map<String, String> nodeCheck, Map<String, ConfigBean> configBeans, Map<String, String> portChecks) {
+	public NodeReportOfCentOS(NodeBean node, Map<String, String> nodeCheck, Map<String, ConfigBean> configBeans, Map<String, String> portChecks, Map<String, MetricBean> metrics) {
 		super(node);
 		this.node = node;
 		this.nodeCheck = nodeCheck;
 		this.configBeans = configBeans;
 		this.portChecks = portChecks;
+		this.metrics = metrics;
 	}
 
 	@Override
@@ -238,4 +242,45 @@ public class NodeReportOfCentOS extends NodeReportTemplate{
 		return answer.toString();
 	}
 
+	@Override
+	public String getMetricInfo() {
+		/* 用于存储结果 */
+		StringBuffer result = new StringBuffer("指标检测：\n");
+		/* 存储用于生成表格的数据信息 */
+		List<String[]> maps = new ArrayList<String[]>();
+		for(Iterator<String> metricNames = metrics.keySet().iterator(); metricNames.hasNext(); ) {
+			String metricName = metricNames.next();
+			MetricBean metric = metrics.get(metricName);
+			/* 获取单位 */
+			String unit = metric.getUnit();
+			/* 将检测结果形成表格 */
+			List<String> values = metric.getValues();
+			for(String value : values) {
+				String[] items = value.split(":");
+				/* 获取并处理时间戳，将其转换为一般格式 */
+				String timestamp = items[0];
+				try {
+					Date date = new Date(Long.valueOf(timestamp));
+					items[0] = Constant.dateFormat.format(date);
+				}catch(Exception e) {
+					logger.error("change date type error, error message is " + e.getMessage());
+				}
+				/* 将单位加到值末尾 */
+				items[1] += " " + unit;
+				maps.add(items);
+			}
+			if(maps.size() != 0) {
+				String name = metric.getMetricName();
+				result.append("  ").append(name).append(":\n");
+				try {
+					result.append("  ").append(PrintToTableUtil.printToTable(maps, 50)).append("\n");
+				}catch(Exception e) {
+					logger.error("change value to Table error, error message is " + e.getMessage());
+				}
+				maps.clear();
+			}
+			
+		}
+		return result.toString();
+	}
 }

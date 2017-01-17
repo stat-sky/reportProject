@@ -1,0 +1,26 @@
+<loadMetrics>
+  <loadMetric>
+    <name>磁盘占用率</name>
+    <metric>disk_ratio</metric>
+  </loadMetric>
+  <loadMetric>
+    <name>内存占用率</name>
+    <metric>mem_ratio</metric>
+  </loadMetric>
+  <loadMetric>
+    <name>cpu占用率</name>
+    <metric>cpu_used</metric>
+  </loadMetric>
+  <loadMetric>
+    <name>空余swap</name>
+    <metric>swap_free</metric>
+  </loadMetric>
+  <loadMetric>
+    <name>网络发送速率</name>
+    <metric>bytes_out</metric>
+  </loadMetric>
+  <loadMetric>
+    <name>网络接收速率</name>
+    <metric>bytes_in</metric>
+  </loadMetric>
+</loadMetrics>

@@ -103,6 +103,13 @@ public abstract class NodeReportTemplate {
 		}catch(Exception e) {
 			logger.error("write service config error, " + e.getMessage());
 		}
+		/* 写入负载指标信息 */
+		try {
+			String metricInfo = this.getMetricInfo();
+			writer.write(metricInfo);
+		}catch(Exception e) {
+			logger.error("write load metric error, " + e.getMessage());
+		}
 		/* 关闭输出流 */
 		writer.flush();
 		writer.close();
@@ -120,4 +127,5 @@ public abstract class NodeReportTemplate {
 	public abstract String getMountInfo();
 	public abstract String getPortInfo();
 	public abstract String getServiceConfigInfo();
+	public abstract String getMetricInfo();
 }

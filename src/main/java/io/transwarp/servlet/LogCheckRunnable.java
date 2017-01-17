@@ -32,6 +32,7 @@ public class LogCheckRunnable implements Runnable {
 	
 	@Override
 	public void run() {
+		logger.info("begin log check of node : " + node.getHostName());
 		/* 发送执行脚本 */
 		sendJar();
 		/* 停止 2 sec 等待脚本传输 */
@@ -96,7 +97,18 @@ public class LogCheckRunnable implements Runnable {
 		}catch(Exception e) {
 			logger.error("scp result to local error, error node is " + node.getIpAddress() + ", error message is " + e.getMessage());
 		}
-		
+		/* 根据配置判断是否删除中间文件 */
+		String deleteFile = Constant.prop_env.getProperty("deleteFile");
+		if(deleteFile.equals("true")) {
+			try {
+				ShellUtil.executeDist("rm -rf " + this.logCheckPath + logDir, nodeUser, node.getIpAddress());
+				ShellUtil.executeDist("rm -rf " + this.logCheckPath + "logCheck.log", nodeUser, node.getIpAddress());
+				ShellUtil.executeDist("rm -rf " + this.logCheckPath + "logCheck.jar", nodeUser, node.getIpAddress());
+				ShellUtil.executeDist("rm -rf " + this.logCheckPath + "logCheck.xml", nodeUser, node.getIpAddress());
+			}catch(Exception e) {
+				logger.error("delete file error, " + e.getMessage());
+			}
+		}
 		/* 检测完成，令计数器加1 */
 		logger.info("log check of node " + node.getHostName() + " is completed");
 		Information.successTask.incrementAndGet();

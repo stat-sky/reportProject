@@ -27,6 +27,7 @@ public class ProcessCheckRunnable implements Runnable {
 	
 	@Override
 	public void run() {
+		logger.info("begin process check of service : " + topic);
 		/* 存放检测结果，参数依次为 检测项，检测结果 */
 		Map<String, String> answer = new HashMap<String, String>();
 		/* 获取检测项 */
@@ -49,7 +50,7 @@ public class ProcessCheckRunnable implements Runnable {
 		Information.processChecks.put(topic, answer);
 		
 		/* 检测完成，计数器加1 */
-		logger.info("process of " + topic + " is completed");
+		logger.info("process check of " + topic + " is completed");
 		Information.successTask.incrementAndGet();
 	}
 }

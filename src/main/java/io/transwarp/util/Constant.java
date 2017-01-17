@@ -29,6 +29,11 @@ public class Constant {
 	public static String distCmd;
 	/** 远程复制文件与文件夹 */
 	public static String distScp;
+	/** hdfs用户的keytab密钥路径 */
+	public static String hdfsKey;
+	/** 检测脚本在各个节点的存放路径 */
+	public static String scriptPath;
+	
 	
 	/* rest api查询项的中文名 */
 	public static final String USER_LOGIN = "用户登录";
@@ -40,6 +45,7 @@ public class Constant {
 	public static final String FIND_MORE_NODE = "查询多个节点";
 	public static final String DOWNLOAD_CONFIG = "下载服务配置";
 	public static final String DOWNLOAD_KEYTAB = "下载用户keytab";	
+	public static final String NODE_METRIC = "节点指标查询";
 	
 	/* 配置文件变量 */
 	/** 环境变量配置 */
@@ -58,4 +64,6 @@ public class Constant {
 	public static ConfigRead prop_config = null;
 	/** 集群检测配置 */
 	public static ConfigRead prop_cluster = null;
+	/** 节点负载指标配置 */
+	public static ConfigRead prop_metric = null;
 }

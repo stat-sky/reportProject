@@ -1,6 +1,7 @@
 package io.transwarp.servlet;
 
 import io.transwarp.bean.ConfigBean;
+import io.transwarp.bean.MetricBean;
 import io.transwarp.bean.NodeBean;
 import io.transwarp.bean.ServiceBean;
 import io.transwarp.bean.TableBean;
@@ -49,6 +50,11 @@ public class Information {
 	 * 参数依次为 检测项，检测结果
 	 */
 	protected static Map<String, String> hdfsChecks = new ConcurrentHashMap<String, String>();
+	/**
+	 * 存放集群各个节点的负载指标
+	 * 参数依次为hostname,指标名,指标java bean
+	 */
+	protected static Map<String, Map<String, MetricBean>> nodeMetrics = new ConcurrentHashMap<String, Map<String, MetricBean>>();
 
 	/** 存放数据表信息 */
 	protected static Vector<TableBean> tables = new Vector<TableBean>();

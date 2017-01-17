@@ -45,7 +45,7 @@
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-jdbc</artifactId>
       <version>0.12.0-transwarp-tdh460</version>
-    </dependency>
+    </dependency> 
     <dependency>
       <groupId>net.sf.json-lib</groupId>
       <artifactId>json-lib</artifactId>
@@ -93,8 +93,8 @@
 	</dependency>
     <!-- mysql连接 -->
     <dependency>
-      <groupId>driver.mysql</groupId>
-      <artifactId>mysql-driver</artifactId>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
       <version>5.1.36</version>
     </dependency>
   </dependencies>

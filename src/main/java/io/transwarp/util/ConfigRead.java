@@ -41,7 +41,6 @@ public class ConfigRead {
 				return element;
 			}
 		}
-		logger.error("key-value of : " + key + " : " + value + " is not found");
 		return null;
 	}
 	

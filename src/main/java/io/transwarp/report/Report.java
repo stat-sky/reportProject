@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 
 import io.transwarp.bean.ConfigBean;
+import io.transwarp.bean.MetricBean;
 import io.transwarp.bean.NodeBean;
 import io.transwarp.bean.RoleBean;
 import io.transwarp.bean.ServiceBean;
@@ -71,7 +72,8 @@ public class Report extends Information{
 				Map<String, String> nodeCheck = Information.nodeChecks.get(hostname);
 				Map<String, ConfigBean> configBean = Information.configs.get(hostname);
 				Map<String, String> portCheck = Information.portChecks.get(hostname);
-				NodeReportOfCentOS nodeReport = new NodeReportOfCentOS(node, nodeCheck, configBean, portCheck);
+				Map<String, MetricBean> metrics = Information.nodeMetrics.get(hostname);
+				NodeReportOfCentOS nodeReport = new NodeReportOfCentOS(node, nodeCheck, configBean, portCheck, metrics);
 				nodeReport.getReport(outputNodePath);				
 			}catch(Exception e) {
 				logger.error("write node check error");
@@ -84,6 +86,7 @@ public class Report extends Information{
 	public void init() {
 		/* 加载log4j配置 */
 		PropertyConfigurator.configure("config/log4j.properties");
+		logger.info("begin load config");
 		try {
 			/* 加载环境配置 */
 			Constant.prop_env.load(new FileInputStream("config/env.properties"));
@@ -93,17 +96,20 @@ public class Report extends Information{
 			Information.tdh_version = version;
 			Constant.prop_restapi = new ConfigRead("config/restapi/restapiURL.xml");
 			Constant.prop_config = new ConfigRead("config/restapi/serviceConfig.xml");
+			Constant.prop_metric = new ConfigRead("config/restapi/loadMetric.xml");
 			
 			/* 加载节点检测相关配置 */
-			String osDir = null;
 			os = Constant.prop_env.getProperty("os");
 			if(os == null) os = "";
-			switch(os) {
-				case "CentOS":osDir = "config/shell/CentOS/";break;
-				case "Suse":osDir = "config/shell/Suse/";break;
-				default : osDir = "config/shell/CentOS/";break;
+			if(os.equalsIgnoreCase("CentOS")) {
+				Constant.prop_nodeCheck = new ConfigRead("config/shell/CentOS/nodeCheck.xml");
+			}else if(os.equalsIgnoreCase("SuSE")) {
+				Constant.prop_nodeCheck = new ConfigRead("config/shell/Suse/nodeCheck.xml");
+			}else if(os.equalsIgnoreCase("redHat")) {
+				Constant.prop_nodeCheck = new ConfigRead("config/shell/CentOS/nodeCheck.xml");
+			}else {
+				Constant.prop_nodeCheck = new ConfigRead("ocnfig/shell/CentOS/nodeCheck.xml");				
 			}
-			Constant.prop_nodeCheck = new ConfigRead(osDir + "nodeCheck.xml");
 			Constant.prop_portCheck = new ConfigRead("config/shell/portCheck.xml");
 			Constant.prop_process = new ConfigRead("config/shell/processCheck.xml");
 			Constant.prop_cluster = new ConfigRead("config/shell/clusterCheck.xml");
@@ -115,12 +121,17 @@ public class Report extends Information{
 			String rootKey = Constant.prop_env.getProperty("rootKey");
 			Constant.distCmd = "ssh -i " + rootKey + " ";
 			Constant.distScp = "scp -i " + rootKey + " ";
+			/* hdfs用户密钥路径 */
+			Constant.hdfsKey = Constant.prop_env.getProperty("hdfsKey");
+			/* 日志检测脚本存放路径 */
+			Constant.scriptPath = Constant.prop_env.getProperty("scriptPath");
 			
 			/* 建立执行的线程池 */
 			Information.threadPool = Executors.newFixedThreadPool(Integer.parseInt(Constant.prop_env.getProperty("threadNum")));;
 		} catch (Exception e) {
 			logger.error("load properties error, error message is " + e.getMessage());
 		}
+		logger.info("load config success");
 	}
 	
 	public void check() {
@@ -132,8 +143,6 @@ public class Report extends Information{
 		String nodeUser = Constant.prop_env.getProperty("nodeUser");
 		/* 本地信息存放路径 */
 		String goalPath = Constant.prop_env.getProperty("goalPath") + "serviceConfigs/";
-		/* 日志检测脚本存放路径 */
-		String logCheckPath = Constant.prop_env.getProperty("logCheckPath");
 		/* 获取集群安全 */
 		String security = Constant.prop_env.getProperty("security");
 		/* jdbc连接信息 */
@@ -141,6 +150,7 @@ public class Report extends Information{
 		if(choose == null) choose = "";
 
 		/* 根据版本号调用rest api获取相关信息 */
+		logger.info("begin get info from rest api");
 		RestAPITemplate restapi = null;
 		if(version.startsWith("4.6")) {
 			restapi = new RestAPIV46(url, username, password);
@@ -152,7 +162,7 @@ public class Report extends Information{
 			restapi = new RestAPIV46(url, username, password);
 		}
 		restapi.run();
-		
+		logger.info("get info from rest api success");
 		/* 获取配置文件夹名称和服务名称的映射 */
 		/* 存放映射关系 */
 		Map<String, String> configMap = new HashMap<String, String>();
@@ -199,18 +209,9 @@ public class Report extends Information{
 			NodeBean node = Information.nodes.get(hostname);
 			String nodeStatus = node.getStatus();
 			if(nodeStatus.equals("Disassociated")) continue;
-			/* 遍历节点包含的角色列表，判断是否包含kadmin角色 */
-			List<RoleBean> roles = node.getRoles();
-			for(RoleBean role : roles) {
-				String type = role.getRoleType();
-				if(type == null) continue;
-				if(type.matches("\\S*" + "KADMIN" + "\\S*") || security.equals("simple") || security.equals("ldap")) {
-					ips.add(node.getIpAddress());
-					break;
-				}
-			}
+			ips.add(node.getIpAddress());
 			/* 建立线程进行日志检测 */
-			Information.threadPool.execute(new LogCheckRunnable(node, nodeUser, logCheckPath, configMap));
+			Information.threadPool.execute(new LogCheckRunnable(node, nodeUser, Constant.scriptPath, configMap));
 			/* 建立线程进行节点检测 */
 			Information.threadPool.execute(new NodeCheckRunnable(node, nodeUser));
 			/* 建立线程进行服务配置检测 */
@@ -251,7 +252,10 @@ public class Report extends Information{
 		try {
 			if(security.equals("kerberos") || security.equals("all")) {
 				for(String ip : ips) {
-					ShellUtil.executeDist(Constant.BUILD_KEYTAB, nodeUser, ip);
+					StringBuffer path2 = new StringBuffer();
+					path2.append(nodeUser).append("@").append(ip).append(":")
+						.append(Constant.scriptPath);
+					ShellUtil.scpFile(Constant.hdfsKey, path2.toString());
 				}
 			}
 		}catch(Exception e) {
@@ -298,12 +302,28 @@ public class Report extends Information{
 					Information.threadPool.shutdown();
 					break;
 				}
-				logger.info("now successTask is : " + Information.successTask.intValue() + " total is " + Information.totalTask + " sleep 5 sec");
+				logger.info("now successTask is : " + Information.successTask.intValue() + ", total is " + Information.totalTask + " sleep 5 sec");
 				Thread.sleep(5000);
 			}catch(Exception e) {
 				e.printStackTrace();
 			}
 		}
+		if(security.equals("all") || security.equals("kerberos")) {
+			/* 根据配置决定是否删除发送的hdfs的keytab */
+			String deleteFile = Constant.prop_env.getProperty("deleteFile");
+			if(deleteFile.equals("true")) {
+				for(Iterator<String> hostnames = Information.nodes.keySet().iterator(); hostnames.hasNext(); ) {
+					String hostname = hostnames.next();
+					NodeBean node = Information.nodes.get(hostname);
+					try {
+						ShellUtil.executeDist("rm -rf " + Constant.scriptPath + "hdfs.keytab", nodeUser, node.getIpAddress());
+					}catch(Exception e) {
+						logger.error("delete file error, " + e.getMessage());
+					}
+				}
+			}
+		}
+
 		try {
 			UtilTool.compressTarGz(goalPath);
 			UtilTool.deleteFile(goalPath);

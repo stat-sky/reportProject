@@ -23,6 +23,7 @@ public class JDBCUtil {
 		try {
 			Class.forName(className);
 		} catch (Exception e) {
+//			e.printStackTrace();
 			logger.error("load classname error, className is " + className + ", error message is " + e.getMessage());
 		}
 		/* 获取sql连接 */
@@ -40,9 +41,9 @@ public class JDBCUtil {
 	
 /*	public static void main(String[] args) {
 		PropertyConfigurator.configure("config/log4j.properties");
-		String url = "jdbc:mysql://172.16.2.64:3306/metastore_inceptorsql1";
-		Connection conn = JDBCUtil.getConnection(url, "xhy", "123");
-		String sql = "SELECT A.database_name, A.owner, A.table_name, A.table_location, A.table_type, A.table_format, B.PARAM_VALUE as transactional FROM (SELECT TBLS.TBL_ID AS id, DBS.NAME AS database_name, TBLS.OWNER AS owner, TBLS.TBL_NAME AS table_name, SDS.LOCATION AS table_location, TBLS.TBL_TYPE AS table_type, SDS.INPUT_FORMAT AS table_format FROM DBS, SDS, TBLS WHERE DBS.DB_ID = TBLS.DB_ID AND SDS.SD_ID = TBLS.SD_ID) A LEFT JOIN (SELECT TBL_ID, PARAM_VALUE FROM TABLE_PARAMS WHERE PARAM_KEY = \"transactional\") B ON A.id = B.TBL_ID;";
+		String url = "jdbc:hive2://172.16.1.111:10000/system;principal=hive/tw-node111@TDH;authentication=kerberos;kuser=hive;keytab=/home/xhy/temp/hive.keytab;krb5conf=/etc/krb5.conf";
+		Connection conn = JDBCUtil.getConnection(url);
+		String sql = "select table_name from tables_v";
 		try {
 			PreparedStatement pstat = conn.prepareStatement(sql);
 			ResultSet rs = pstat.executeQuery();

@@ -25,6 +25,7 @@ public class HdfsCheckRunnable implements Runnable {
 	
 	@Override
 	public void run() {
+		logger.info("begin hdfs check");
 		/* 获取配置 */
 		List<Element> configs = null;
 		try {

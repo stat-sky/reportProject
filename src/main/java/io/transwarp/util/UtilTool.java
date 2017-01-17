@@ -236,7 +236,8 @@ public class UtilTool {
 		if(security.equals("simple") || security.equals("ldap")) {
 			return "sudo -u hdfs " + command;
 		}else {
-			return "kinit -kt hdfs.keytab hdfs;" + command;
+			String fileName = UtilTool.getFileName(Constant.hdfsKey);
+			return "kinit -kt " + Constant.scriptPath + fileName + " hdfs;" + command;
 		}
 	}
 	

@@ -114,7 +114,7 @@ public class HttpMethodTool {
 		if(url.indexOf("http") == -1) {
 			url = manager + "/api" + url;
 		}
-		logger.info("execute url is : \"" + url + "\", httpMethod is " + httpMethod);
+		logger.debug("execute url is : \"" + url + "\", httpMethod is " + httpMethod);
 		switch(httpMethod) {
 		case "get" : entity = this.getHttpMethod(url); break;
 		case "put" : entity = this.putHttpMethod(url, paramJson); break;
@@ -145,7 +145,7 @@ public class HttpMethodTool {
 		Map<String, byte[]> result = new HashMap<String, byte[]>();
 		InputStream inputStream = null;
 		url = manager + "/api" + url;
-		logger.info("execute url is : \"" + url + "\", httpMethod is get");
+		logger.debug("execute url is : \"" + url + "\", httpMethod is get");
 		HttpEntity entity = getHttpMethod(url);
 		try {
 			inputStream = entity.getContent();
@@ -182,7 +182,7 @@ public class HttpMethodTool {
 			String url = UtilTool.buildURL(config.elementText("url"), urlParam);
 			url = manager + "/api" + url;
 			HttpEntity entity = this.getHttpMethod(url);
-			logger.info("execute url is : \"" + url + "\", httpMethod is get");
+			logger.debug("execute url is : \"" + url + "\", httpMethod is get");
 			InputStream inputStream = entity.getContent();
 			String outputPath = Constant.prop_env.getProperty("goalPath") + "other/" + fileName + ".keytab";
 			FileOutputStream outputStream = new FileOutputStream(outputPath);

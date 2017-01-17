@@ -42,6 +42,7 @@ public class ConfigCheckRunnable implements Runnable{
 	
 	@Override
 	public void run() {
+		logger.info("begin service config check of node : " + hostname);
 		Map<String, ConfigBean> serviceConfigs = new HashMap<String, ConfigBean>();
 		for(Iterator<String> servicenames = Information.services.keySet().iterator(); servicenames.hasNext(); ) {
 			String servicename = servicenames.next();
@@ -98,6 +99,7 @@ public class ConfigCheckRunnable implements Runnable{
 		}
 		Information.configs.put(hostname, serviceConfigs);
 		Information.successTask.incrementAndGet();
+		logger.info("service config check of node : " + hostname + " is completed");
 	}
 	private Map<String, String> analysisXml(String filePath) {
 		/* 存放分析结果 */

@@ -136,29 +136,32 @@ public class TableBean {
 	public String checkTableType() {
 		String tableType;
 		String formatType;
+		String transaction;
+		/* 记录是否为外表 */
 		if(table_type.equals("EXTERNAL_TABLE")) {
 			tableType = "外表";
 		}else {
 			tableType = "表";
 		}
-		switch(table_format) {
-		case "text" :formatType = "text";break;
-		case "hbase" :formatType = "hyperbase";break;
-		case "memory" : formatType = "holodesk";break;
-		case "orc" :{
-			if(transactional.equals("true")) {
-				formatType = "orc";
-			}else {
-				formatType = "orc";
-			}
-		}break;
-		default :{
-			String[] temps = table_format.split(".");
-			if(temps.length > 0) formatType = temps[temps.length - 1];
-			else formatType = table_format;
-		}break;
+		/* 记录表类型 */
+		if(table_format.startsWith("Text") || table_format.startsWith("text")) {
+			formatType = "text";
+		}else if(table_format.startsWith("Orc") || table_format.startsWith("orc")) {
+			formatType = "orc";
+		}else if(table_format.startsWith("Hyerbase") || table_format.startsWith("hyperbase")) {
+			formatType = "hyperbase";
+		}else if(table_format.indexOf("memory") != -1) {
+			formatType = "holodesk";
+		}else {
+			formatType = table_format;
 		}
-		return formatType + tableType;
+		/* 记录是否为事物表 */
+		if(transactional != null && transactional.equals("true")) {
+			transaction = "事务";
+		}else {
+			transaction = "";
+		}
+		return formatType + transaction + tableType;
 		
 	}
 }

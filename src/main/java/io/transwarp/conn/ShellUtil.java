@@ -45,7 +45,7 @@ public class ShellUtil {
 	public static void scpDir(String path1, String path2) throws Exception {
 		StringBuffer command = new StringBuffer(Constant.distScp);
 		command.append("-r ").append(path1).append(" ").append(path2);
-		logger.info("scp command is " + command.toString());
+		logger.debug("scp command is " + command.toString());
 		executeLocal(command.toString(), 0);
 	}
 	
@@ -58,7 +58,7 @@ public class ShellUtil {
 	public static void scpFile(String path1, String path2) throws Exception {
 		StringBuffer command = new StringBuffer(Constant.distScp);
 		command.append(path1).append(" ").append(path2);
-		logger.info("scp command is " + command.toString());
+		logger.debug("scp command is " + command.toString());
 		executeLocal(command.toString(), 0);	
 	}
 }

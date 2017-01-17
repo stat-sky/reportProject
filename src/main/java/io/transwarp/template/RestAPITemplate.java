@@ -37,8 +37,8 @@ public abstract class RestAPITemplate implements Runnable{
 		this.getServices();
 		/* 获取服务角色信息 */
 		this.getRoleInfo();
-		/* 获取服务配置信息 */
-//		this.getConfigInfo();
+		/* 获取负载指标信息 */
+		this.getMetricsInfo();
 		/* 关闭method连接 */
 		this.method.close();
 	}
@@ -148,6 +148,7 @@ public abstract class RestAPITemplate implements Runnable{
 	/** 分析服务角色信息 */
 	public abstract void disposeRole(String json);
 	
-	/** 获取服务配置信息 */
-//	public abstract void getConfigInfo();
+	/** 获取负载指标信息 */
+	public abstract void getMetricsInfo();
+
 }
