@@ -99,7 +99,7 @@ public class LogCheckRunnable implements Runnable {
 		}
 		/* 根据配置判断是否删除中间文件 */
 		String deleteFile = Constant.prop_env.getProperty("deleteFile");
-		if(deleteFile.equals("true")) {
+		if(deleteFile != null && deleteFile.equals("true")) {
 			try {
 				ShellUtil.executeDist("rm -rf " + this.logCheckPath + logDir, nodeUser, node.getIpAddress());
 				ShellUtil.executeDist("rm -rf " + this.logCheckPath + "logCheck.log", nodeUser, node.getIpAddress());

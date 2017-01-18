@@ -25,7 +25,7 @@ public class ShellUtil {
 	
 	public static String executeLocal(String cmd, long waitTime) throws Exception {
 		Process process = Runtime.getRuntime().exec(cmd);
-		if(waitTime != 0) {
+		if(waitTime > 0) {
 			try {
 				Thread.sleep(waitTime);
 			}catch(Exception e) {}

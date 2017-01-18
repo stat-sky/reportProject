@@ -153,7 +153,8 @@ public class TableBean {
 		}else if(table_format.indexOf("memory") != -1) {
 			formatType = "holodesk";
 		}else {
-			formatType = table_format;
+			String[] items = table_format.split("\\.");
+			formatType = items[items.length - 1];
 		}
 		/* 记录是否为事物表 */
 		if(transactional != null && transactional.equals("true")) {

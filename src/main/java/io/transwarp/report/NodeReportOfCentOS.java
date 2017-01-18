@@ -273,7 +273,7 @@ public class NodeReportOfCentOS extends NodeReportTemplate{
 				String name = metric.getMetricName();
 				result.append("  ").append(name).append(":\n");
 				try {
-					result.append("  ").append(PrintToTableUtil.printToTable(maps, 50)).append("\n");
+					result.append(PrintToTableUtil.printToTable(maps, 50)).append("\n");
 				}catch(Exception e) {
 					logger.error("change value to Table error, error message is " + e.getMessage());
 				}

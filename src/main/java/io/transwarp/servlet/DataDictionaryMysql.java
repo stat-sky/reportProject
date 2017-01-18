@@ -3,7 +3,6 @@ package io.transwarp.servlet;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -16,8 +15,8 @@ public class DataDictionaryMysql extends DataDictionaryTemplate {
 
 	private static Logger logger = Logger.getLogger(DataDictionaryMysql.class);
 	
-	public DataDictionaryMysql(String security, List<String> ips, String nodeUser) {
-		super(security, ips, nodeUser);
+	public DataDictionaryMysql(String security, String hdfsConfPath ,String namenodeIP) {
+		super(security, hdfsConfPath, namenodeIP);
 	}
 	
 	@Override

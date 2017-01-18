@@ -4,7 +4,6 @@ import java.util.List;
 
 import io.transwarp.conn.ShellUtil;
 import io.transwarp.util.Constant;
-import io.transwarp.util.UtilTool;
 
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
@@ -37,20 +36,32 @@ public class HdfsCheckRunnable implements Runnable {
 			String itemName = config.elementText("name");
 			String command = config.elementText("command");
 			/* 根据安全类型来修改命令 */
-			command = UtilTool.getCmdOfSecurity(command, security);
+			command = getCmdOfSecurity(command, security);
 			/* 执行命令获取结果 */
 			String result = null;
 			try {
 				result = ShellUtil.executeDist(command, nodeUser, ipAddress);
+				logger.debug("execute result is " + result + ", command is " + command);
 			}catch(Exception e) {
 				logger.error("execute shell of hdfs check error, error cmd is " + command + ", error message is " + e.getMessage());
 			}
-			if(result == null) return;
+			if(result == null) {
+				logger.warn("result is null, command is " + command);
+				return;
+			}
 			/* 将结果存入Information */
 			Information.hdfsChecks.put(itemName, result);
 		}
 		/* 检测完成，计数器加1 */
 		logger.info("check of hdfs is completed");
 		Information.successTask.incrementAndGet();
+	}
+	
+	public static String getCmdOfSecurity(String command, String security) {
+		if(security.equals("simple") || security.equals("ldap")) {
+			return "sudo -u hdfs " + command;
+		}else {
+			return "kinit -kt " + Constant.hdfsKey + " hdfs;" + command;
+		}
 	}
 }

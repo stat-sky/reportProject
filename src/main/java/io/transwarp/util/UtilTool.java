@@ -232,15 +232,6 @@ public class UtilTool {
 		return items[items.length - 1];
 	}
 	
-	public static String getCmdOfSecurity(String command, String security) {
-		if(security.equals("simple") || security.equals("ldap")) {
-			return "sudo -u hdfs " + command;
-		}else {
-			String fileName = UtilTool.getFileName(Constant.hdfsKey);
-			return "kinit -kt " + Constant.scriptPath + fileName + " hdfs;" + command;
-		}
-	}
-	
 	/**
 	 * 使用给定的字符将原始字符串填充至指定长度
 	 * @param oldString 需要进行填充的原始字符串

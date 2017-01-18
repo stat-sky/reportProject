@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -17,8 +16,8 @@ public class DataDictionaryInceptor extends DataDictionaryTemplate {
 
 	private static Logger logger = Logger.getLogger(DataDictionaryInceptor.class);
 	
-	public DataDictionaryInceptor(String security, List<String> ips, String nodeUser) {
-		super(security, ips, nodeUser);
+	public DataDictionaryInceptor(String security, String hdfsConfPath, String namenodeIP) {
+		super(security, hdfsConfPath, namenodeIP);
 	}
 	
 	@Override

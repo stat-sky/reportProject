@@ -57,7 +57,7 @@ public class ConfigCheckRunnable implements Runnable{
 					.append("/etc/").append(configPath).append("/conf/*");
 			/* 构建本地存放路径和存放的文件夹 */
 			StringBuffer savePath = new StringBuffer(goalPath);
-			savePath.append(servicename).append("/").append(hostname).append("/");
+			savePath.append(servicename).append("/").append(ipAddress).append("/");
 			try {
 				File saveDir = new File(savePath.toString());
 				if(!saveDir.exists()) {

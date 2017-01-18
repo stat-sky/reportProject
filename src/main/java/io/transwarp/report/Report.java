@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -125,6 +124,9 @@ public class Report extends Information{
 			Constant.hdfsKey = Constant.prop_env.getProperty("hdfsKey");
 			/* 日志检测脚本存放路径 */
 			Constant.scriptPath = Constant.prop_env.getProperty("scriptPath");
+			if(!Constant.scriptPath.endsWith("/")) {
+				Constant.scriptPath += "/";
+			}
 			
 			/* 建立执行的线程池 */
 			Information.threadPool = Executors.newFixedThreadPool(Integer.parseInt(Constant.prop_env.getProperty("threadNum")));;
@@ -142,7 +144,12 @@ public class Report extends Information{
 		/* 节点登录用户 */
 		String nodeUser = Constant.prop_env.getProperty("nodeUser");
 		/* 本地信息存放路径 */
-		String goalPath = Constant.prop_env.getProperty("goalPath") + "serviceConfigs/";
+		String goalPath = Constant.prop_env.getProperty("goalPath");
+		if(!goalPath.endsWith("/")) {
+			goalPath += "/serviceConfigs/";
+		}else {
+			goalPath += "serviceConfigs/";
+		}
 		/* 获取集群安全 */
 		String security = Constant.prop_env.getProperty("security");
 		/* jdbc连接信息 */
@@ -163,6 +170,9 @@ public class Report extends Information{
 		}
 		restapi.run();
 		logger.info("get info from rest api success");
+
+		/* hdfs服务配置路径 */
+		String hdfsConfPath = "";
 		/* 获取配置文件夹名称和服务名称的映射 */
 		/* 存放映射关系 */
 		Map<String, String> configMap = new HashMap<String, String>();
@@ -192,7 +202,12 @@ public class Report extends Information{
 					Object sid = serviceConfig.get("sid");
 					Object name = serviceConfig.get("name");
 					if(sid == null || name == null) continue;
-					configMap.put(name.toString(), sid.toString());
+					String serviceName = name.toString();
+					if(serviceName.indexOf("HDFS") != -1) {
+						hdfsConfPath = "/etc/" + sid.toString() + "/conf/";
+					}
+					configMap.put(serviceName, sid.toString());
+					
 				}
 			}catch(Exception e) {
 				logger.error("read Service.json error, error message is " + e.getMessage());
@@ -200,8 +215,6 @@ public class Report extends Information{
 		}
 		int configMapSize = configMap.size();
 		
-		/* 存放包含 kadmin 服务角色的节点ip，用于查询hdfs信息 */
-		List<String> ips = new ArrayList<String>();
 		
 		/* 根据rest api获取的节点信息对所有节点检测 */
 		for(Iterator<String> hostnames = Information.nodes.keySet().iterator(); hostnames.hasNext(); ) {
@@ -209,7 +222,6 @@ public class Report extends Information{
 			NodeBean node = Information.nodes.get(hostname);
 			String nodeStatus = node.getStatus();
 			if(nodeStatus.equals("Disassociated")) continue;
-			ips.add(node.getIpAddress());
 			/* 建立线程进行日志检测 */
 			Information.threadPool.execute(new LogCheckRunnable(node, nodeUser, Constant.scriptPath, configMap));
 			/* 建立线程进行节点检测 */
@@ -225,6 +237,9 @@ public class Report extends Information{
 			Information.totalTask += 2;			
 		}
 		
+		/* 记录activenamenode节点IP */
+		String activeNamenode = null;
+		String standbyNamenode = null;
 		/* 根据服务信息中的角色列表进行进程检测 */
 		/* 获取进程检测要求配置 */
 		List<Element> processConfigs = Constant.prop_process.getAll();
@@ -234,9 +249,25 @@ public class Report extends Information{
 			ServiceBean service = Information.services.get(serviceName);
 			List<RoleBean> roles = service.getRoles();
 			for(RoleBean role : roles) {
+				String roleType = role.getRoleType();
+				if(roleType.matches("\\S*ACTIVENAMENODE\\S*")) {
+					if(role.getHealth().equals("DOWN")) continue;
+					try {
+						activeNamenode = role.getNode().getIpAddress();
+					}catch(Exception e) {
+						logger.error("get active namenode ip error, " + e.getMessage());
+					}
+				}else if(roleType.matches("\\S*STANDBYNAMENODE\\S*")) {
+					if(role.getHealth().equals("DOWN")) continue;
+					try {
+						standbyNamenode = role.getNode().getIpAddress();
+					}catch(Exception e) {
+						logger.error("get standby namenode ip error, " + e.getMessage());
+					}
+				}
 				for(Element processConfig : processConfigs) {
 					String serviceRole = processConfig.elementText("serviceRoleType");
-					if(role.getRoleType().equals(serviceRole)) {
+					if(roleType.equals(serviceRole)) {
 						if(role.getHealth().equals("DOWN")) continue;
 						String ip = role.getNode().getIpAddress();
 						String topic = serviceName + ":" + serviceRole;
@@ -246,25 +277,15 @@ public class Report extends Information{
 				}
 			}
 		}
-		
-		/* 若开启kerberos则需要在进行hdfs检测和表空间检测的节点生成keytab */
-		/* 若开启kerberos认证，则在执行节点上生成keytab */
-		try {
-			if(security.equals("kerberos") || security.equals("all")) {
-				for(String ip : ips) {
-					StringBuffer path2 = new StringBuffer();
-					path2.append(nodeUser).append("@").append(ip).append(":")
-						.append(Constant.scriptPath);
-					ShellUtil.scpFile(Constant.hdfsKey, path2.toString());
-				}
-			}
-		}catch(Exception e) {
-			logger.error("build keytab error, error message is " + e.getMessage());
+		if(activeNamenode == null && standbyNamenode == null) {
+			logger.error("get namenode ip error");
 		}
-
+		if(activeNamenode == null) {
+			activeNamenode = standbyNamenode;
+		}
 		/* 建立线程进行hdfs检测 */
 		try {
-			Information.threadPool.execute(new HdfsCheckRunnable(security, ips.get(0), nodeUser));
+			Information.threadPool.execute(new HdfsCheckRunnable(security, activeNamenode, nodeUser));
 			Information.totalTask += 1;			
 		}catch(Exception e) {
 			logger.error("execute hdfs check error, error message is " + e.getMessage());
@@ -273,11 +294,11 @@ public class Report extends Information{
 		/* 数据表空间检测 */
 		DataDictionaryTemplate dataCheck = null;
 		if(choose.equals("inceptor")) {
-			dataCheck = new DataDictionaryInceptor(security, ips, nodeUser);
+			dataCheck = new DataDictionaryInceptor(security, hdfsConfPath, activeNamenode);
 		}else if(choose.equals("mysql")) {
-			dataCheck = new DataDictionaryMysql(security, ips, nodeUser);
+			dataCheck = new DataDictionaryMysql(security, hdfsConfPath, activeNamenode);
 		}else {
-			dataCheck = new DataDictionaryMysql(security, ips, nodeUser);
+			dataCheck = new DataDictionaryMysql(security, hdfsConfPath, activeNamenode);
 		}
 		dataCheck.beginTableCheckRunnabl();
 		/* 判断多线程执行是否结束 */
@@ -311,7 +332,7 @@ public class Report extends Information{
 		if(security.equals("all") || security.equals("kerberos")) {
 			/* 根据配置决定是否删除发送的hdfs的keytab */
 			String deleteFile = Constant.prop_env.getProperty("deleteFile");
-			if(deleteFile.equals("true")) {
+			if(deleteFile != null && deleteFile.equals("true")) {
 				for(Iterator<String> hostnames = Information.nodes.keySet().iterator(); hostnames.hasNext(); ) {
 					String hostname = hostnames.next();
 					NodeBean node = Information.nodes.get(hostname);
